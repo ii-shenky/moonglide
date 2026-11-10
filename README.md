@@ -79,4 +79,5 @@ GPS («я здесь») браузер даёт только по HTTPS или �
 
 Проект делается в диалоге с [Claude Code](https://claude.com/claude-code), как и его старший брат
 [nebo](https://github.com/ii-shenky/nebo) (табло самолётов на Raspberry Pi). [CLAUDE.md](CLAUDE.md) — рабочая
-памятка агента: цель, решения, проверки, грабли.
+памятка агента: цель, решения, состояние; [ai/README.md](ai/README.md) — карта кода, грабли и как проверять
+изменения; [ai/sessions/](ai/sessions/) — сам диалог по дням. Для других агентов — [AGENTS.md](AGENTS.md).
