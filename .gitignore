@@ -1,0 +1,8 @@
+CLAUDE.local.md
+.scrub
+__pycache__/
+*.pyc
+.venv/
+cache/
+de4*.bsp
+approaches.local.toml

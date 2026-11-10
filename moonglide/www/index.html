@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>moonglide</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root {
+  --bg: #f4f5f7; --panel: #fff; --ink: #161a21; --ink-2: #555d6b; --ink-3: #959cab; --line: #e2e5ea;
+  --sel: #1f6fd0; --sel-bg: #e9f1fc; --warn: #c2361d; --ok: #2f8f4e;
+  --f-huge: #c2361d; --f-big: #d98a16; --f-fit: #2f8f4e; --f-small: #2c6fc0;
+  --moon: #6f6a55; --sun: #d97a00;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --panel: #171b21; --ink: #e9ecf1; --ink-2: #a7afbd; --ink-3: #6c7483; --line: #262c35;
+    --sel: #5ea2f2; --sel-bg: #182536; --warn: #ef6a50; --ok: #5cc27e;
+    --f-huge: #ef6a50; --f-big: #f0a83a; --f-fit: #5cc27e; --f-small: #5ea2f2;
+    --moon: #e4dcb8; --sun: #ffb340;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --panel: #171b21; --ink: #e9ecf1; --ink-2: #a7afbd; --ink-3: #6c7483; --line: #262c35;
+  --sel: #5ea2f2; --sel-bg: #182536; --warn: #ef6a50; --ok: #5cc27e;
+  --f-huge: #ef6a50; --f-big: #f0a83a; --f-fit: #5cc27e; --f-small: #5ea2f2;
+  --moon: #e4dcb8; --sun: #ffb340;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.num { font-variant-numeric: tabular-nums; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 16px;
+  background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand { font-weight: 700; font-size: 17px; display: flex; gap: 6px; align-items: center; margin-right: 4px; }
+.brand svg { width: 20px; height: 20px; }
+header label { display: flex; align-items: center; gap: 6px; color: var(--ink-2); }
+input, select, button { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 5px 8px; }
+input[type=text] { width: 6em; text-transform: uppercase; }
+button { cursor: pointer; }
+button.on { background: var(--sel); color: #fff; border-color: var(--sel); }
+.seg { display: inline-flex; }
+.seg button { border-radius: 0; }
+.seg button:first-child { border-radius: 6px 0 0 6px; }
+.seg button:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+#status { padding: 8px 16px; color: var(--ink-2); }
+#status .err { color: var(--warn); }
+#sunwarn { display: none; margin: 8px 16px 0; padding: 8px 12px; border-radius: 8px; background: var(--warn); color: #fff; font-weight: 600; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 12px; padding: 0 16px 16px; align-items: start; }
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+#map { height: 64vh; min-height: 320px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.timebar { margin-top: 10px; }
+.timebar input[type=range] { width: 100%; }
+.timebar .now { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+.timebar .now b { font-size: 18px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--ink-2); font-size: 13px; margin-top: 8px; }
+.legend i { display: inline-block; width: 14px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+.opts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; color: var(--ink-2); font-size: 13px; }
+h2 { font-size: 15px; margin: 0 0 8px; }
+.win { border-top: 1px solid var(--line); padding: 8px 0; }
+.win:first-of-type { border-top: none; }
+.win .t { font-size: 17px; font-weight: 700; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; color: var(--ink-2); }
+.kv b { color: var(--ink); font-weight: 600; }
+.muted { color: var(--ink-3); }
+.side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.slist { max-height: 46vh; overflow: auto; margin: 8px -14px -12px; }
+.srow { padding: 7px 14px; border-top: 1px solid var(--line); cursor: pointer; }
+.srow:hover { background: var(--bg); }
+.srow.on { background: var(--sel-bg); }
+.srow .d { font-weight: 600; }
+.badge { display: inline-block; padding: 0 6px; border-radius: 4px; font-size: 12px; background: var(--bg); color: var(--ink-2); }
+.badge.night { background: #1d2740; color: #c9d6f5; }
+.badge.twilight { background: #4b3a63; color: #eadff7; }
+.badge.day { background: #fff1c9; color: #6b5310; }
+.win { cursor: pointer; }
+.win.on { background: var(--sel-bg); margin: 0 -14px; padding: 8px 14px; }
+.aim { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; font-weight: 600; color: var(--ink); box-shadow: none; }
+.aim::before { display: none; }
+.mlegend { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; font-size: 11.5px; line-height: 1.3; max-width: 215px; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+.mlegend summary { cursor: pointer; font-weight: 600; list-style: none; }
+.mlegend summary::-webkit-details-marker { display: none; }
+.mlegend summary::after { content: ' ▾'; color: var(--ink-3); }
+.mlegend[open] summary { margin-bottom: 6px; }
+.mlegend .row { display: grid; grid-template-columns: 28px 1fr; gap: 6px; align-items: center; margin: 2px 0; }
+.mlegend .sub { color: var(--ink-3); margin: 6px 0 2px; }
+.mlegend svg { display: block; }
+.skylabel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; color: var(--ink); box-shadow: none; font-weight: 600; }
+.skylabel::before { display: none; }
+footer { padding: 4px 16px 20px; color: var(--ink-3); font-size: 12px; }
+footer a { color: inherit; }
+.tlabel { background: transparent; border: none; box-shadow: none; color: var(--ink); font-weight: 600;
+  text-shadow: 0 0 3px var(--panel), 0 0 3px var(--panel); padding: 0; }
+.tlabel::before { display: none; }
+.leaflet-container { font: inherit; }
+.tiles { filter: var(--tiles, none); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --tiles: brightness(.7) invert(1) contrast(.9) hue-rotate(200deg) saturate(.3) brightness(.9); } }
+:root[data-theme="dark"] { --tiles: brightness(.7) invert(1) contrast(.9) hue-rotate(200deg) saturate(.3) brightness(.9); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M3 15l18-6"/></svg>moonglide</div>
+  <span class="seg" id="presets"><button data-a="LCLK">Ларнака</button><button data-a="LCPH">Пафос</button></span>
+  <label>аэропорт <input type="text" id="airport" value="LCLK" maxlength="8"></label>
+  <label>полоса <select id="runway"></select></label>
+  <label>ночь с <input type="date" id="date"></label>
+  <span class="seg"><button id="b-moon" class="on">Луна</button><button id="b-sun">Солнце</button></span>
+  <button id="go">Показать</button>
+  <button id="gps" title="отметить, где я сейчас">я здесь</button> <a href="help" style="margin-left:auto;color:var(--sel)">как пользоваться</a>
+</header>
+<div id="sunwarn">Солнце: смотреть и снимать только через сертифицированный солнечный фильтр — без него повредите глаза и камеру.</div>
+<div id="status">…</div>
+<main>
+  <div>
+    <div id="map"></div>
+    <div class="panel timebar">
+      <div class="now"><b class="num" id="t-now">—</b><span id="t-sky"></span></div>
+      <input type="range" id="slider" min="0" max="0" value="0">
+      <div class="opts">
+        <label><input type="checkbox" id="o-dark"> только в темноте (Солнце ниже −6°)</label>
+        <label><input type="checkbox" id="o-land"> скрыть море (иначе — пунктиром; озёра не отсекаются)</label>
+        <label><input type="checkbox" id="o-all" checked> все минуты бледно</label>
+      </div>
+    </div>
+  </div>
+  <div class="side">
+  <div class="panel" id="search">
+    <h2>Удачные окна</h2>
+    <div class="opts">
+      <label>на <select id="s-days"><option value="30">30 дней</option><option value="60" selected>60 дней</option><option value="90">90 дней</option></select></label>
+      <label>самолёт <select id="s-size"><option value="fit">целиком в диске</option><option value="big">до 2 дисков</option><option value="any">любой</option></select></label>
+      <button id="s-go">Найти</button>
+    </div>
+    <div class="opts">
+      <label><input type="checkbox" id="f-night" checked> ночь</label>
+      <label><input type="checkbox" id="f-twilight" checked> сумерки</label>
+      <label><input type="checkbox" id="f-day" checked> день</label>
+      <label id="f-illum-l">освещена ≥ <select id="f-illum"><option value="0">0%</option><option value="0.3" selected>30%</option><option value="0.6">60%</option><option value="0.9">90%</option></select></label>
+      <label>выше <select id="f-alt"><option value="5">5°</option><option value="8">8°</option><option value="12">12°</option><option value="20">20°</option></select></label>
+    </div>
+    <div class="slist" id="s-list"><div class="srow muted">Где тень глиссады ляжет не на море и самолёт будет нужного размера — на недели вперёд.</div></div>
+  </div>
+  <div class="panel" id="detail">
+    <h2>Где встать</h2>
+    <div class="muted">Цветные линии — где стоять в каждый момент: стоя на линии, видите глиссаду через центр диска
+      (пунктир — над морем). Ползунок — время. Нажмите на карту — покажу, когда из этой точки самолёт на заходе
+      пройдёт по диску, и схему прицела: вы → самолёт → диск.</div>
+  </div>
+  </div>
+</main>
+<footer>
+  Предсказывается геометрия, а не рейсы: конечный участок захода (по схеме, если она задана, иначе типовая глиссада 3°); самолёты идут по нему, когда полоса в ходу.
+  Рельеф учтён, здания — нет. Не стойте на территории аэропорта и у военных объектов.
+  Данные: Луна и Солнце — <a href="https://rhodesmill.org/skyfield/">Skyfield</a> + JPL DE421;
+  полосы — <a href="https://ourairports.com/data/">OurAirports</a>; рельеф — <span id="dem-attr">Copernicus DEM GLO-30 / GLO-90</span>;
+  карта — © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.
+  <a href="https://github.com/ii-shenky/moonglide">Исходники</a>.
+</footer>
+<script>
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const A320 = 35.8;
+let body = 'moon', night = null, idx = 0, me = null, pick = null, airportData = null;
+
+const map = L.map('map', { preferCanvas: true }).setView([34.88, 33.63], 11);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, className: 'tiles',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
+const lAll = L.layerGroup().addTo(map), lSel = L.layerGroup().addTo(map), lGlide = L.layerGroup().addTo(map),
+      lLabels = L.layerGroup().addTo(map), lAim = L.layerGroup().addTo(map), lSky = L.layerGroup().addTo(map), lMe = L.layerGroup().addTo(map);
+let curLine = null, aimShown = false, aimWin = null;
+// схема прицела — на момент окна точки; ползунок увели с окна — она бледнеет, лучи светил — на минуту ползунка
+const aimNow = () => !!(aimShown && aimWin && curLine && curLine.t >= aimWin.start - 90 && curLine.t <= aimWin.end + 90);
+let found = null, pointRes = null;
+
+function fmtTime(t, sec) {
+  return new Date(t * 1000).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: sec ? '2-digit' : undefined });
+}
+function fmtDate(t) { return new Date(t * 1000).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }); }
+function compass(az) { return ['С', 'СВ', 'В', 'ЮВ', 'Ю', 'ЮЗ', 'З', 'СЗ'][Math.round(az / 45) % 8]; }
+function frac(distKm, radDeg) { return A320 / (distKm * 1000) / (2 * radDeg * Math.PI / 180); }
+function fracColor(f) { return f < 0.33 ? css('--f-small') : f <= 1 ? css('--f-fit') : f <= 3 ? css('--f-big') : css('--f-huge'); }
+function skyState(sunAlt) { return sunAlt > 0 ? 'день' : sunAlt > -6 ? 'гражданские сумерки' : sunAlt > -12 ? 'сумерки' : 'ночь'; }
+function bodyName(nom) { return body === 'moon' ? (nom ? 'Луна' : 'Луны') : (nom ? 'Солнце' : 'Солнца'); }
+
+function q() {
+  return `airport=${encodeURIComponent($('airport').value.trim())}&runway=${encodeURIComponent($('runway').value)}` +
+    `&date=${$('date').value}&body=${body}`;
+}
+// строки из справочников и ошибок — только через esc() (или textContent)
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+async function api(path, signal) {
+  const r = await fetch(path, { signal });
+  const j = await r.json().catch(() => ({ error: `ошибка сервера ${r.status}` }));
+  if (!r.ok || j.error) throw new Error(j.error || r.status);
+  return j;
+}
+function status(html, err) { $('status').innerHTML = err ? `<span class="err">${esc(html)}</span>` : html; }
+
+// снимок параметров: ответ, посчитанный для других аэропорта/полосы/даты/светила, не показывается
+function ctxKey() { return [$('airport').value.trim().toUpperCase(), $('runway').value, $('date').value, body].join('|'); }
+
+let airportGen = 0;
+async function loadAirport(keep) {
+  const gen = ++airportGen, code = $('airport').value.trim().toUpperCase();
+  let data;
+  try {
+    data = await api(`/api/airport?code=${encodeURIComponent(code)}`);
+  } catch (e) { if (gen === airportGen) status(e.message, true); return false; }
+  // пока ждали, выбрали другой аэропорт — этот ответ не нужен, и продолжения (сутки, поиск) — тоже
+  if (gen !== airportGen || code !== $('airport').value.trim().toUpperCase()) return false;
+  airportData = data;
+  const sel = $('runway'), prev = keep || sel.value;
+  sel.innerHTML = airportData.runways.map(r => `<option value="${esc(r.ident)}">${esc(r.ident)} — заход с ${compass((r.heading + 180) % 360)}, курс ${Math.round(r.heading)}°</option>`).join('');
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+  return true;
+}
+
+function visibleLines() {
+  if (!night) return [];
+  const dark = $('o-dark').checked && body === 'moon';
+  return night.lines.filter(l => !dark || l.sun_alt < -6);
+}
+
+function drawLine(group, line, opts) {
+  const land = $('o-land').checked;
+  for (const run of line.runs) {
+    let seg = [], color = null, sea = false;
+    const flush = () => {
+      if (seg.length > 1) L.polyline(seg, sea ? { color, ...opts, dashArray: '3 6', opacity: (opts.opacity || 1) * 0.6 } : { color, ...opts }).addTo(group);
+    };
+    for (let k = 0; k < run.length; k++) {
+      const p = run[k];
+      if (land && p[6]) { flush(); seg = []; color = null; continue; }
+      if (!!p[6] !== sea && seg.length) { seg.push([p[0], p[1]]); flush(); seg = [seg[seg.length - 1]]; color = null; }
+      sea = !!p[6];
+      const c = fracColor(frac(p[3], line.radius_deg));
+      if (c !== color && color !== null && seg.length) { seg.push([p[0], p[1]]); flush(); seg = [seg[seg.length - 1]]; }
+      color = c; seg.push([p[0], p[1]]);
+    }
+    flush();
+  }
+}
+
+function bandPolygon(line) {
+  // полоса: от центральной линии вбок на полуширину (нормаль по соседним точкам)
+  const land = $('o-land').checked, polys = [];
+  const pieces = [];  // куски без моря: суша по разные стороны залива — разные многоугольники
+  for (const run of line.runs) {
+    let cur = [];
+    for (const p of run) {
+      if (land && p[6]) { if (cur.length) pieces.push(cur); cur = []; } else cur.push(p);
+    }
+    if (cur.length) pieces.push(cur);
+  }
+  for (const pts of pieces) {
+    if (pts.length < 2) continue;
+    const left = [], right = [];
+    for (let k = 0; k < pts.length; k++) {
+      const a = pts[Math.max(0, k - 1)], b = pts[Math.min(pts.length - 1, k + 1)], p = pts[k];
+      const kx = 111320 * Math.cos(p[0] * Math.PI / 180), ky = 110540;
+      let tx = (b[1] - a[1]) * kx, ty = (b[0] - a[0]) * ky;
+      const n = Math.hypot(tx, ty) || 1; tx /= n; ty /= n;
+      const w = p[2];
+      left.push([p[0] + (tx * w) / ky, p[1] - (ty * w) / kx]);
+      right.push([p[0] - (tx * w) / ky, p[1] + (ty * w) / kx]);
+    }
+    polys.push(left.concat(right.reverse()));
+  }
+  return polys;
+}
+
+function render() {
+  lAll.clearLayers(); lSel.clearLayers(); lLabels.clearLayers();
+  const lines = visibleLines();
+  $('slider').max = Math.max(0, lines.length - 1);
+  if (!lines.length) { $('t-now').textContent = '—'; $('t-sky').textContent = ''; return; }
+  idx = Math.min(idx, lines.length - 1);
+  if ($('o-all').checked) {
+    lines.forEach((l, i) => drawLine(lAll, l, { weight: 1.5, opacity: 0.22 }));
+  }
+  // подписи времени раз в 10 минут — у дальнего конца глиссады
+  // подписи времени раз в 10 минут — у дальнего конца глиссады, если не налезают на соседнюю
+  const placed = [];
+  lines.forEach(l => {
+    if (Math.round(l.t / 60) % 10) return;
+    const pts = l.runs.flat().filter(q => !($('o-land').checked && q[6]));
+    if (!pts.length) return;
+    const p = pts[pts.length - 1];
+    const px = map.latLngToContainerPoint([p[0], p[1]]);
+    if (placed.some(q => Math.abs(q.x - px.x) < 46 && Math.abs(q.y - px.y) < 18)) return;
+    placed.push(px);
+    L.tooltip({ permanent: true, direction: 'right', className: 'tlabel', offset: [4, 0] })
+      .setLatLng([p[0], p[1]]).setContent(fmtTime(l.t)).addTo(lLabels);
+  });
+  const l = lines[idx];
+  for (const poly of bandPolygon(l)) L.polygon(poly, { color: css('--sel'), weight: 1, fillOpacity: 0.25 }).addTo(lSel);
+  drawLine(lSel, l, { weight: 4, opacity: 1 });
+  curLine = l;
+  drawSky();
+  aimStyle();
+  $('slider').value = idx;
+  $('t-now').textContent = `${fmtDate(l.t)}, ${fmtTime(l.t)}`;
+  const illum = body === 'moon' ? `, освещена ${Math.round(l.illum * 100)}%` : '';
+  $('t-sky').textContent = `${bodyName(true)}: высота ${l.alt.toFixed(1)}°, азимут ${Math.round(l.az)}° (${compass(l.az)})${illum} · ${skyState(l.sun_alt)}`;
+}
+
+// --- где Луна и Солнце в выбранную минуту: лучи по азимуту от выбранной точки (или порога);
+// длина ~ cos(высоты): у горизонта — длинный луч, высоко в небе — короткий
+function drawSky() {
+  lSky.clearLayers();
+  const l = curLine;
+  if (!l || !l.sky || !night) return;
+  const origin = pick || L.latLng(night.runway.lat, night.runway.lon);
+  const o = map.latLngToContainerPoint(origin), size = map.getSize();
+  const base = 0.36 * Math.min(size.x, size.y);
+  for (const [name, sym, word, color] of [['moon', '☾', 'Луна', '--moon'], ['sun', '☀', 'Солнце', '--sun']]) {
+    const [alt, az] = l.sky[name];
+    if (alt <= 0 || (name === body && aimNow())) continue;  // это светило уже на схеме прицела
+    const len = base * Math.max(0.25, Math.cos(alt * Math.PI / 180)), a = az * Math.PI / 180;
+    const end = map.containerPointToLatLng([o.x + len * Math.sin(a), o.y - len * Math.cos(a)]);
+    L.polyline([origin, end], { color: css(color), weight: 3, opacity: 0.9, interactive: false }).addTo(lSky);
+    L.circleMarker(end, { radius: 7, color: css(color), weight: 2, fillColor: css(color), fillOpacity: 0.85 }).addTo(lSky)
+      .bindTooltip(`${sym} ${word} ${alt.toFixed(0)}° · ${Math.round(az)}° ${compass(az)}`,
+                   { permanent: true, direction: 'right', className: 'skylabel', offset: [8, 0] });
+  }
+}
+
+// --- легенда карты
+const LEG = (inner, w = 28) => `<svg width="${w}" height="12" viewBox="0 0 ${w} 12">${inner}</svg>`;
+const legend = L.control({ position: 'bottomleft' });
+legend.onAdd = () => {
+  const d = L.DomUtil.create('details', 'mlegend');
+  if (window.innerWidth > 900) d.open = true;
+  const ln = (c, extra = '', w = 3) => LEG(`<line x1="1" y1="6" x2="27" y2="6" style="stroke:var(${c})" stroke-width="${w}" stroke-linecap="round" ${extra}/>`);
+  d.innerHTML = `<summary>Легенда</summary>
+    <div class="row">${ln('--ink-2', 'stroke-dasharray="5 4"', 2)}<span>заход: глиссада</span></div>
+    <div class="row">${ln('--ink-2', 'stroke-dasharray="1 4"', 2)}<span>до FAF — горизонтально</span></div>
+    <div class="row">${LEG('<circle cx="8" cy="6" r="4" style="fill:var(--ink)"/><circle cx="21" cy="6" r="3" style="fill:var(--ink-2)"/>')}<span>порог · NM, FAF, IF</span></div>
+    <div class="sub">Где стоять — самолёт пройдёт по диску:</div>
+    <div class="row">${ln('--f-fit', 'opacity=".45"', 2)}<span>каждые 2 мин (бледные — все сутки)</span></div>
+    <div class="row">${LEG('<rect x="1" y="2" width="26" height="8" style="fill:var(--sel);stroke:var(--sel)" fill-opacity=".25" stroke-width=".8"/><line x1="1" y1="6" x2="27" y2="6" style="stroke:var(--f-fit)" stroke-width="3"/>')}<span>минута на ползунке; заливка — ширина диска</span></div>
+    <div class="row">${ln('--f-fit', 'stroke-dasharray="2 4"', 2)}<span>над морем (рельеф 0 м)</span></div>
+    <div class="sub">A320 на фоне диска:</div>
+    <div class="row">${ln('--f-small')}<span>меньше ⅓ диаметра</span></div>
+    <div class="row">${ln('--f-fit')}<span>целиком в диске</span></div>
+    <div class="row">${ln('--f-big')}<span>до 3 дисков</span></div>
+    <div class="row">${ln('--f-huge')}<span>больше 3 дисков</span></div>
+    <div class="sub">Выбранная точка:</div>
+    <div class="row">${LEG('<circle cx="6" cy="6" r="4" fill="none" style="stroke:var(--sel)" stroke-width="2"/><line x1="10" y1="6" x2="27" y2="6" style="stroke:var(--sel)" stroke-width="2.5"/>')}<span>вы → под самолётом</span></div>
+    <div class="row">${ln('--sel', 'stroke-dasharray="1 4"', 2)}<span>→ туда смотреть на диск</span></div>
+    <div class="row">${LEG('<line x1="1" y1="6" x2="21" y2="6" style="stroke:var(--moon)" stroke-width="3"/><circle cx="23" cy="6" r="4" style="fill:var(--moon)"/>')}<span>☾ Луна, ☀ Солнце: азимут; луч короче — выше</span></div>`;
+  try { const v = localStorage.getItem('mg.legend'); if (v !== null) d.open = v === '1'; } catch (e) {}
+  d.addEventListener('toggle', () => { try { localStorage.setItem('mg.legend', d.open ? '1' : '0'); } catch (e) {} });
+  L.DomEvent.disableClickPropagation(d);
+  L.DomEvent.disableScrollPropagation(d);
+  return d;
+};
+legend.addTo(map);
+map.on('moveend', drawSky);
+
+function drawGlide() {
+  lGlide.clearLayers();
+  if (!night) return;
+  const g = night.glide, r = night.runway, pts = g.lat.map((la, i) => [la, g.lon[i]]);
+  const ft = m => Math.round((m + r.elev_m) / 0.3048);
+  const faf = g.faf_km != null ? g.dist_km.findIndex(d => d >= g.faf_km - 1e-6) : -1;
+  const glidePts = faf > 0 ? pts.slice(0, faf + 1) : pts;
+  L.polyline(glidePts, { color: css('--ink-2'), weight: 2, dashArray: '6 6' }).addTo(lGlide)
+    .bindTooltip(`глиссада ${g.angle}°, ${Math.round(g.tch_m)} м над порогом`);
+  if (faf > 0) {
+    L.polyline(pts.slice(faf), { color: css('--ink-2'), weight: 2, dashArray: '1 6' }).addTo(lGlide)
+      .bindTooltip(`площадка до FAF: ${ft(g.height_m[faf])} ft (${Math.round(g.height_m[faf] + r.elev_m)} м)`);
+  }
+  const mark = (i, label) => L.circleMarker(pts[i], { radius: 4, color: css('--ink-2'), weight: 1, fillOpacity: 1 }).addTo(lGlide)
+    .bindTooltip(`${label}: ${(g.dist_km[i] / 1.852).toFixed(1)} NM (${g.dist_km[i].toFixed(1)} км), ${ft(g.height_m[i])} ft`);
+  [1, 2, 3, 4].forEach(nm => { const i = g.dist_km.findIndex(d => d >= nm * 1.852 - 1e-6); if (i > 0 && (faf < 0 || i < faf)) mark(i, `${nm} NM`); });
+  if (faf > 0) mark(faf, 'FAF');
+  mark(pts.length - 1, faf > 0 ? 'IF' : 'конец');
+  L.circleMarker([r.lat, r.lon], { radius: 5, color: css('--ink'), fillOpacity: 1 }).addTo(lGlide).bindTooltip(`порог ${esc(r.ident)}`);
+}
+
+let nightGen = 0;
+async function loadNight(fit, focus) {
+  const gen = ++nightGen, key = ctxKey();  // ответ на устаревший запрос (сменили дату, полосу, светило) — выбрасывается
+  if (pointKey && pointKey !== key) dropPoint();  // разбор точки — для прежних параметров
+  status('считаю…');
+  let res;
+  try {
+    res = await api(`/api/night?${q()}`);
+  } catch (e) {
+    if (gen !== nightGen || key !== ctxKey()) return;
+    status(e.message, true); night = null; render();
+    if (pick && !pointKey) $('detail').innerHTML = `<h2>Точка ${pick.lat.toFixed(5)}, ${pick.lng.toFixed(5)}</h2><div class="muted">сутки не загрузились — разбор точки после повтора</div>`;
+    return;
+  }
+  if (gen !== nightGen || key !== ctxKey()) return;
+  night = res;
+  if (night.attribution) $('dem-attr').textContent = night.attribution.dem;
+  $('sunwarn').style.display = body === 'sun' ? 'block' : 'none';
+  setHash();
+  const info = airportData && airportData.info ? `${esc(airportData.info.name)}${airportData.info.city ? ', ' + esc(airportData.info.city) : ''} · ` : '';
+  const wins = night.windows.map(([a, b]) => `${fmtDate(a)} ${fmtTime(a)}–${fmtTime(b)}`).join(', ');
+  status(night.windows.length
+    ? `${info}полоса ${esc(night.runway.ident)}: ${bodyName(true)} выше 5° — ${wins} (время ваше местное)<br><span class="muted">заход: ${esc(night.glide.note)}</span>`
+    : `${info}${bodyName(true)} в эти сутки не поднимается выше 5°`);
+  drawGlide();
+  const lines = visibleLines();
+  // начинаем с момента, когда самолёт ближе всего к «целиком в диске»
+  let best = 0, bestScore = 1e9;
+  lines.forEach((l, i) => l.runs.forEach(run => run.forEach(p => {
+    const s = Math.abs(Math.log(frac(p[3], l.radius_deg) / 0.7));
+    if (s < bestScore && !($('o-land').checked && p[6])) { bestScore = s; best = i; }
+  })));
+  idx = focus ? nearestLine(focus.t) : best;
+  render();
+  if (fit) {
+    const b = L.latLngBounds(night.glide.lat.map((la, i) => [la, night.glide.lon[i]]));
+    lines.forEach(l => l.runs.forEach(run => run.forEach(p => b.extend([p[0], p[1]]))));
+    map.fitBounds(b, { padding: [20, 20], maxZoom: 13 });
+  }
+  if (focus) showPoint(focus.lat, focus.lon, focus.t);
+  else if (pick) showPoint(pick.lat, pick.lng);
+}
+
+function nearestLine(t) {
+  const lines = visibleLines();
+  let k = 0;
+  lines.forEach((l, i) => { if (Math.abs(l.t - t) < Math.abs(lines[k].t - t)) k = i; });
+  return k;
+}
+
+// --- схема прицела: вы → самолёт → диск
+function destination(lat, lon, az, km) {
+  const R = 6371.0088, d = km / R, b = az * Math.PI / 180, la = lat * Math.PI / 180, lo = lon * Math.PI / 180;
+  const la2 = Math.asin(Math.sin(la) * Math.cos(d) + Math.cos(la) * Math.sin(d) * Math.cos(b));
+  const lo2 = lo + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(la), Math.cos(d) - Math.sin(la) * Math.sin(la2));
+  return [la2 * 180 / Math.PI, lo2 * 180 / Math.PI];
+}
+
+function drawAim(w) {
+  lAim.clearLayers();
+  aimShown = !!(w && pick);
+  aimWin = aimShown ? w : null;
+  drawSky();
+  if (!aimShown) return;
+  const plane = [w.plane_lat, w.plane_lon];
+  const ext = Math.max(2, w.plane_dist_km * 0.8);
+  const far = destination(w.plane_lat, w.plane_lon, w.az, ext);
+  const sel = css('--sel');
+  L.polyline([pick, plane], { color: sel, weight: 3 }).addTo(lAim);
+  L.polyline([plane, far], { color: sel, weight: 2, dashArray: '2 7' }).addTo(lAim);
+  L.circleMarker(plane, { radius: 6, color: sel, weight: 2, fillColor: css('--panel'), fillOpacity: 1 }).addTo(lAim)
+    .bindTooltip(`✈ ${fmtTime(w.best, true)} · ${Math.round(w.plane_height_m)} м · в ${w.plane_dist_km} км`,
+                 { permanent: true, direction: 'top', className: 'aim', offset: [0, -6] });
+  const bc = css(body === 'moon' ? '--moon' : '--sun');
+  L.circleMarker(far, { radius: 7, color: bc, weight: 2, fillColor: bc, fillOpacity: 0.85 }).addTo(lAim)
+    .bindTooltip(`${body === 'moon' ? '☾ Луна' : '☀ Солнце'} в ${fmtTime(w.best)}: ${w.alt.toFixed(1)}° · ${Math.round(w.az)}° ${compass(w.az)}`,
+                 { permanent: true, direction: 'right', className: 'skylabel', offset: [8, 0] });
+  aimStyle();
+}
+
+function aimStyle() {
+  const o = aimNow() ? 1 : 0.35;
+  lAim.eachLayer(x => {
+    if (x.setStyle) { x._base = x._base || [x.options.opacity ?? 1, x.options.fillOpacity ?? 0.2];
+      x.setStyle({ opacity: x._base[0] * o, fillOpacity: x._base[1] * o }); }
+    const t = x.getTooltip && x.getTooltip(); if (t && t.getElement()) t.getElement().style.opacity = o; });
+}
+
+function selectWin(i) {
+  if (!pointRes || pointRes.key !== ctxKey() || !pointRes.windows[i]) return;
+  document.querySelectorAll('#detail .win').forEach((el, k) => el.classList.toggle('on', k === i));
+  const w = pointRes.windows[i];
+  drawAim(w);
+  idx = nearestLine(w.best);
+  render();
+}
+
+// --- поиск удачных окон
+const SKY_WORD = { night: 'ночь', twilight: 'сумерки', day: 'день' };
+let searchGen = 0;
+function ctxNow() { return { airport: $('airport').value.trim().toUpperCase(), runway: $('runway').value, body }; }
+function sameCtx(c) { const n = ctxNow(); return c && c.airport === n.airport && c.runway === n.runway && c.body === n.body; }
+
+async function runSearch() {
+  const gen = ++searchGen, ctx = ctxNow();
+  const days = +$('s-days').value;
+  const kinds = ['night', 'twilight', 'day'].filter(k => $('f-' + k).checked);
+  $('f-illum-l').style.display = body === 'moon' ? '' : 'none';
+  found = null;
+  if (!kinds.length) { $('s-list').innerHTML = `<div class="srow muted">Отметьте хотя бы одно небо: ночь, сумерки или день.</div>`; return; }
+  $('s-list').innerHTML = `<div class="srow muted">ищу на ${days} дней вперёд… (первый раз — секунд ${Math.round(days / 4)})</div>`;
+  // фильтры — на сервере, к каждому моменту до склейки в окна; моменты кешируются — смена фильтра быстрая
+  const flt = `&min_alt=${$('f-alt').value}&min_illum=${body === 'moon' ? $('f-illum').value : 0}&sky=${kinds.join(',')}`;
+  let res;
+  try {
+    res = await api(`/api/search?${q()}&days=${days}&size=${$('s-size').value}${flt}`);
+  } catch (e) { if (gen === searchGen) $('s-list').innerHTML = `<div class="srow err">${esc(e.message)}</div>`; return; }
+  if (gen !== searchGen || !sameCtx(ctx)) return;
+  found = res;
+  found.ctx = ctx;
+  renderSearch();
+}
+
+function renderSearch() {
+  if (!found) return;
+  if (!found.windows.length) {
+    $('s-list').innerHTML = `<div class="srow muted">${found.moments ? 'Под фильтры ничего не подходит — ослабьте их.' : 'За этот срок тень глиссады с самолётом нужного размера на сушу не ложится (только на море).'}</div>`;
+    return;
+  }
+  $('s-list').innerHTML = found.windows.map((w, i) => {
+    const b = w.best;
+    const il = found.body === 'moon' ? ` · ${Math.round(b.illum * 100)}%` : '';
+    return `<div class="srow" data-i="${i}">
+      <span class="d">${new Date(b.t * 1000).toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+      <span class="num">${fmtTime(w.start)}–${fmtTime(w.end)}</span> <span class="badge ${esc(w.sky)}">${SKY_WORD[w.sky]}</span>
+      <div class="muted">${bodyName(true)} ${b.alt}° ${compass(b.az)}${il} · A320 ${Math.round(b.frac * 100)}% диска ·
+        ${b.from_runway_km} км к ${compass(b.from_runway_bearing)} от полосы</div></div>`;
+  }).join('');
+  $('s-list').querySelectorAll('.srow[data-i]').forEach(el => el.addEventListener('click', () => {
+    if (!found || !sameCtx(found.ctx)) return;  // список от другого аэропорта/полосы/светила — уже пересчитывается
+    $('s-list').querySelectorAll('.srow').forEach(x => x.classList.toggle('on', x === el));
+    openWindow(found.windows[+el.dataset.i]);
+  }));
+}
+
+async function openWindow(w) {
+  const b = w.best;
+  if ($('o-dark').checked && w.sky !== 'night') $('o-dark').checked = false;
+  map.setView([b.lat, b.lon], Math.max(map.getZoom(), 12));
+  if ($('date').value !== w.date || !night) {
+    $('date').value = w.date;
+    await loadNight(false, { t: b.t, lat: b.lat, lon: b.lon });
+  } else {
+    idx = nearestLine(b.t);
+    render();
+    showPoint(b.lat, b.lon, b.t);
+  }
+}
+
+function setHash() {
+  if (!$('runway').value) return;
+  const pt = pick ? `/${pick.lat.toFixed(5)},${pick.lng.toFixed(5)}` : '';
+  history.replaceState(null, '', `#${ctxKey().split('|').join('/')}${pt}`);
+}
+
+let pointGen = 0, pointCtl = null, pointKey = null;
+function dropPoint() {  // параметры сменились: разбор точки и схема прицела — устарели
+  pointGen++;
+  if (pointCtl) pointCtl.abort();
+  pointRes = null; pointKey = null; aimShown = false; aimWin = null;
+  lAim.clearLayers();
+  if (pick) $('detail').innerHTML = `<h2>Точка ${pick.lat.toFixed(5)}, ${pick.lng.toFixed(5)}</h2><div class="muted">пересчитаю, когда загрузятся сутки…</div>`;
+}
+async function showPoint(lat, lon, near) {
+  const gen = ++pointGen, key = ctxKey();  // выбрали другую точку или сменили параметры — старый ответ не нужен
+  pointKey = key;
+  if (pointCtl) pointCtl.abort();
+  pointCtl = new AbortController();
+  const ctl = pointCtl;
+  pick = L.latLng(lat, lon);
+  setHash();
+  drawSky();
+  lMe.clearLayers();
+  lAim.clearLayers();
+  aimShown = false;
+  pointRes = null;
+  L.circleMarker(pick, { radius: 7, color: css('--sel'), weight: 3, fillOpacity: 0.3 }).addTo(lMe);
+  if (me) L.circleMarker(me, { radius: 5, color: css('--ok'), fillOpacity: 1 }).addTo(lMe);
+  const el = $('detail');
+  el.innerHTML = `<h2>Точка ${lat.toFixed(5)}, ${lon.toFixed(5)}</h2><div class="muted">считаю…</div>`;
+  let r;
+  try { r = await api(`/api/point?${q()}&lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`, ctl.signal); }
+  catch (e) { if (gen === pointGen && key === ctxKey() && e.name !== 'AbortError') el.innerHTML = `<h2>Точка</h2><div class="err">${esc(e.message)}</div>`; return; }
+  if (gen !== pointGen || key !== ctxKey()) return;
+  r.key = key;
+  const head = `<h2>Точка ${lat.toFixed(5)}, ${lon.toFixed(5)}</h2>
+    <div class="muted">${r.sea ? 'море · ' : `рельеф ${Math.round(r.ground_m)} м · `}глиссада видна на ${Math.round(r.visible_frac * 100)}%</div>`;
+  pointRes = r;
+  if (!r.windows.length) {
+    el.innerHTML = head + `<p>В эти сутки глиссада отсюда по диску ${bodyName(false)} не проходит — ближайшие даты ниже.</p>` + NEAR;
+    nearSearch(lat, lon);
+    return;
+  }
+  el.innerHTML = head + r.windows.map(w => {
+    const disc = w.disc.map(([n, f]) => `${n}: ${f >= 1 ? '×' + f.toFixed(1) + ' диска' : Math.round(f * 100) + '% диаметра'}`).join(', ');
+    const len = Math.round(w.end - w.start);
+    return `<div class="win">
+      <div class="t num">${fmtTime(w.start, true)} – ${fmtTime(w.end, true)}</div>
+      <div class="muted">окно ${Math.floor(len / 60)} мин ${len % 60} с, лучше всего в ${fmtTime(w.best, true)}${w.miss_radii > 0.1 ? ` (мимо центра на ${Math.round(w.miss_radii * 100)}% радиуса)` : ''}</div>
+      <div class="kv">
+        <span>самолёт</span><b>в ${w.plane_dist_km} км от вас, ${Math.round(w.plane_height_m)} м над морем, ${w.glide_km} км до порога</b>
+        <span>на диске</span><b>${disc}</b>
+        <span>пролёт</span><b>${w.crossing_s < 1 ? w.crossing_s.toFixed(2) : w.crossing_s.toFixed(1)} с через центр — ${w.crossing_s < 0.5 ? 'только серия или видео' : 'серия'}</b>
+        <span>${bodyName(true)}</span><b>высота ${w.alt.toFixed(1)}°, азимут ${Math.round(w.az)}° (${compass(w.az)})${w.illum != null ? `, освещена ${Math.round(w.illum * 100)}%` : ''}</b>
+        <span>небо</span><b>${skyState(w.sun_alt)} (Солнце ${w.sun_alt}°)</b>
+      </div></div>`;
+  }).join('') + `<p class="muted">Окно — пока глиссада идёт по диску; самолёт должен оказаться в нужной точке захода в это время.
+    Нажмите на окно — схема прицела на карте и ползунок на это время.</p>`;
+  el.querySelectorAll('.win').forEach((x, k) => x.addEventListener('click', () => selectWin(k)));
+  // окно — ближайшее к заданному моменту, иначе к ползунку
+  const lines = visibleLines(), t = near || (lines[idx] && lines[idx].t) || r.windows[0].best;
+  let k = 0;
+  r.windows.forEach((w, i) => { if (Math.abs(w.best - t) < Math.abs(r.windows[k].best - t)) k = i; });
+  document.querySelectorAll('#detail .win').forEach((x, i) => x.classList.toggle('on', i === k));
+  drawAim(r.windows[k]);
+  idx = nearestLine(r.windows[k].best);  // ползунок — на окно этой точки
+  render();
+  el.insertAdjacentHTML('beforeend', NEAR);
+  nearSearch(lat, lon);
+}
+
+// --- ближайшие даты из точки (все полосы аэропорта, от сегодняшнего дня)
+const NEAR = `<div id="near"><h2 style="margin-top:12px">Ближайшие даты отсюда</h2><div class="slist" id="near-list"><div class="srow muted">ищу на 60 дней по всем полосам…</div></div></div>`;
+let nearCache = { key: null, res: null }, nearGen = 0, nearCtl = null, nearTimer = null;
+function todayStr() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+function nearKey(lat, lon) { return `${$('airport').value.trim().toUpperCase()}|${body}|${lat.toFixed(5)}|${lon.toFixed(5)}`; }
+function nearSearch(lat, lon) {  // частые клики — один запрос, старый отменяется
+  clearTimeout(nearTimer);
+  const gen = ++nearGen;
+  nearTimer = setTimeout(() => nearRun(lat, lon, gen), 300);
+}
+async function nearRun(lat, lon, gen) {
+  const airport = $('airport').value.trim().toUpperCase(), key = nearKey(lat, lon);
+  let r = nearCache.key === key ? nearCache.res : null;
+  if (!r) {
+    if (nearCtl) nearCtl.abort();
+    nearCtl = new AbortController();
+    try {
+      r = await api(`/api/point_search?airport=${encodeURIComponent(airport)}&date=${todayStr()}&days=60&body=${body}&lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`, nearCtl.signal);
+    } catch (e) {
+      const l = $('near-list');
+      if (gen === nearGen && e.name !== 'AbortError' && l) l.innerHTML = `<div class="srow err">${esc(e.message)}</div>`;
+      return;
+    }
+    nearCache = { key, res: r };
+  }
+  const list = $('near-list');
+  // устаревший ответ: другая точка, аэропорт или светило
+  if (gen !== nearGen || !list || !pick || nearKey(pick.lat, pick.lng) !== key) return;
+  if (!r.windows.length) {
+    list.innerHTML = `<div class="srow muted">За 60 дней отсюда пролётов по диску нет (глиссада видна: ${Object.entries(r.visible).map(([k, v]) => `${esc(k)} — ${Math.round(v * 100)}%`).join(', ')}).</div>`;
+    return;
+  }
+  const cur = $('runway').value, date = $('date').value;
+  list.innerHTML = r.windows.map((w, i) => {
+    const a320 = w.disc[1][1], size = a320 >= 1 ? `×${a320.toFixed(1)} диска` : `${Math.round(a320 * 100)}% диска`;
+    const il = w.illum != null ? ` · ${Math.round(w.illum * 100)}%` : '';
+    const on = w.runway === cur && w.date === date ? ' on' : '';
+    return `<div class="srow${on}" data-i="${i}">
+      <span class="d">${new Date(w.best * 1000).toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+      <span class="num">${fmtTime(w.start, true)}–${fmtTime(w.end, true)}</span> <span class="badge ${esc(w.sky)}">${SKY_WORD[w.sky]}</span>
+      <span class="badge">полоса ${esc(w.runway)}</span>
+      <div class="muted">${bodyName(true)} ${w.alt.toFixed(1)}° ${compass(w.az)} (${Math.round(w.az)}°)${il} · A320 ${size} ·
+        самолёт ${Math.round(w.plane_height_m)} м в ${w.plane_dist_km} км</div></div>`;
+  }).join('');
+  list.querySelectorAll('.srow[data-i]').forEach(el => el.addEventListener('click', async () => {
+    if (nearCache.key !== key || !pick || nearKey(pick.lat, pick.lng) !== key) return;
+    const w = r.windows[+el.dataset.i];
+    const runwayChanged = $('runway').value !== w.runway;
+    $('runway').value = w.runway;
+    $('date').value = w.date;
+    await loadNight(false, { t: w.best, lat, lon });
+    if (runwayChanged) runSearch();
+  }));
+}
+
+map.on('click', e => showPoint(e.latlng.lat, e.latlng.lng));
+map.on('zoomend', render);
+$('slider').addEventListener('input', e => { idx = +e.target.value; render(); });
+['o-dark', 'o-land', 'o-all'].forEach(id => $(id).addEventListener('change', render));
+$('s-go').addEventListener('click', runSearch);
+document.querySelectorAll('#presets button').forEach(b => b.addEventListener('click', async () => {
+  $('airport').value = b.dataset.a; pick = null; lAim.clearLayers(); lMe.clearLayers();
+  if (await loadAirport()) { loadNight(true); runSearch(); }
+}));
+['f-night', 'f-twilight', 'f-day', 'f-illum', 'f-alt'].forEach(id => $(id).addEventListener('change', runSearch));
+['s-days', 's-size'].forEach(id => $(id).addEventListener('change', runSearch));
+$('go').addEventListener('click', async () => { if (await loadAirport()) { loadNight(true); runSearch(); } });
+$('airport').addEventListener('change', async () => { if (await loadAirport()) { loadNight(true); runSearch(); } });
+$('runway').addEventListener('change', () => { loadNight(false); runSearch(); });
+$('date').addEventListener('change', () => loadNight(false));
+for (const b of ['moon', 'sun']) $('b-' + b).addEventListener('click', () => {
+  body = b; $('b-moon').classList.toggle('on', b === 'moon'); $('b-sun').classList.toggle('on', b === 'sun');
+  found = null; loadNight(false); runSearch();
+});
+$('gps').addEventListener('click', () => {
+  if (!navigator.geolocation) return status('браузер не даёт координаты (нужен HTTPS)', true);
+  navigator.geolocation.getCurrentPosition(p => {
+    me = L.latLng(p.coords.latitude, p.coords.longitude); map.setView(me, Math.max(map.getZoom(), 13)); showPoint(me.lat, me.lng);
+  }, e => status(`координаты: ${e.message}`, true), { enableHighAccuracy: true, timeout: 15000 });
+});
+
+(async () => {
+  const [a, rw, d, b, pt] = decodeURIComponent(location.hash.slice(1)).split('/');
+  const m = /^(-?\d+\.?\d*),(-?\d+\.?\d*)$/.exec(pt || '');
+  if (m) pick = L.latLng(+m[1], +m[2]);
+  const today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  $('date').value = d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : today.toISOString().slice(0, 10);
+  if (a) $('airport').value = a;
+  if (b === 'sun') { body = 'sun'; $('b-moon').classList.remove('on'); $('b-sun').classList.add('on'); }
+  if (await loadAirport(rw || '22')) { loadNight(true); runSearch(); }
+})();
+</script>
+</body>
+</html>

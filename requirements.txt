@@ -1,0 +1,4 @@
+skyfield>=1.49
+numpy>=1.26
+tifffile>=2024.1
+imagecodecs>=2024.1

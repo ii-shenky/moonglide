@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>moonglide — как пользоваться</title>
+<style>
+:root {
+  --bg: #f4f5f7; --panel: #fff; --ink: #161a21; --ink-2: #555d6b; --ink-3: #959cab; --line: #e2e5ea;
+  --sel: #1f6fd0; --sel-bg: #e9f1fc; --warn: #c2361d;
+  --f-huge: #c2361d; --f-big: #d98a16; --f-fit: #2f8f4e; --f-small: #2c6fc0;
+  --moon: #6f6a55; --sun: #d97a00; --sky: #eef1f6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --panel: #171b21; --ink: #e9ecf1; --ink-2: #a7afbd; --ink-3: #6c7483; --line: #262c35;
+    --sel: #5ea2f2; --sel-bg: #182536; --warn: #ef6a50;
+    --f-huge: #ef6a50; --f-big: #f0a83a; --f-fit: #5cc27e; --f-small: #5ea2f2;
+    --moon: #e4dcb8; --sun: #ffb340; --sky: #11161d;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --panel: #171b21; --ink: #e9ecf1; --ink-2: #a7afbd; --ink-3: #6c7483; --line: #262c35;
+  --sel: #5ea2f2; --sel-bg: #182536; --warn: #ef6a50;
+  --f-huge: #ef6a50; --f-big: #f0a83a; --f-fit: #5cc27e; --f-small: #5ea2f2;
+  --moon: #e4dcb8; --sun: #ffb340; --sky: #11161d;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 16px 16px 40px; }
+a { color: var(--sel); }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 17px; display: flex; gap: 6px; align-items: center; color: var(--ink); text-decoration: none; }
+.brand svg { width: 20px; height: 20px; }
+h1 { font-size: 24px; line-height: 1.25; margin: 20px 0 6px; }
+h2 { font-size: 18px; margin: 30px 0 8px; }
+h3 { font-size: 15px; margin: 18px 0 4px; }
+p { margin: 6px 0 10px; }
+.lead { color: var(--ink-2); font-size: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 12px 0; }
+.card.warn { border-color: var(--warn); }
+ol, ul { padding-left: 22px; margin: 6px 0 10px; }
+li { margin: 3px 0; }
+.muted { color: var(--ink-3); }
+.btn { display: inline-block; padding: 0 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg);
+  font-size: 13.5px; white-space: nowrap; }
+.legend { display: grid; grid-template-columns: 40px 1fr; gap: 6px 12px; align-items: center; margin: 8px 0; }
+.legend svg { display: block; }
+.paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.paths .card { margin: 0; }
+.paths b { display: block; margin-bottom: 4px; }
+figure { margin: 12px 0; }
+figure svg { width: 100%; height: auto; display: block; background: var(--sky); border-radius: 10px; border: 1px solid var(--line); }
+figcaption { color: var(--ink-2); font-size: 13.5px; margin-top: 6px; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 8px 0; }
+dt { color: var(--ink-2); }
+dd { margin: 0; }
+@media (max-width: 520px) { dl { grid-template-columns: 1fr; } dt { margin-top: 6px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top">
+  <a class="brand" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M3 15l18-6"/></svg>moonglide</a>
+  <a href="./">← к карте</a>
+</div>
+
+<h1>Как пользоваться картой</h1>
+<p class="lead">Карта показывает, где встать и во сколько, чтобы самолёт на заходе на посадку прошёл
+по диску Луны или Солнца.</p>
+
+<h2>Принцип</h2>
+<p>Перед посадкой самолёты снижаются по одной и той же прямой, глиссаде. Она висит в небе неподвижно, а положение
+Луны известно на годы вперёд. Если представить Луну фонарём, глиссада отбросит на землю тень. Встаньте в эту тень,
+и любой самолёт на заходе пройдёт для вас по диску.</p>
+<figure>
+  <svg viewBox="0 0 640 230" role="img" aria-label="Схема: Луна, самолёт на глиссаде и наблюдатель на одной прямой; тень глиссады на земле">
+    <g style="stroke:var(--moon)" stroke-width="1" opacity=".35" stroke-dasharray="3 5">
+      <line x1="70" y1="40" x2="298" y2="200"/><line x1="70" y1="40" x2="585" y2="200"/>
+    </g>
+    <line x1="70" y1="40" x2="452" y2="200" style="stroke:var(--sel)" stroke-width="1.6"/>
+    <circle cx="70" cy="40" r="24" style="fill:var(--moon)"/>
+    <text x="104" y="34" style="fill:var(--ink-2)" font-size="13">Луна</text>
+    <line x1="10" y1="200" x2="630" y2="200" style="stroke:var(--ink-3)" stroke-width="1.5"/>
+    <rect x="560" y="197" width="60" height="6" rx="2" style="fill:var(--ink-2)"/>
+    <text x="566" y="220" style="fill:var(--ink-2)" font-size="12">полоса</text>
+    <line x1="580" y1="198" x2="100" y2="120" style="stroke:var(--ink-2)" stroke-width="2" stroke-dasharray="6 6"/>
+    <text x="150" y="112" style="fill:var(--ink-2)" font-size="12">глиссада</text>
+    <g transform="translate(345 151) rotate(9)" style="fill:var(--ink)">
+      <path d="M-14 -1.5 L12 -1.5 Q16 0 12 1.5 L-14 1.5 Z"/><path d="M-1 -1 L-7 -9 L-3 -9 L5 -1 Z"/><path d="M-12 -1 L-15 -6 L-12 -6 L-8 -1 Z"/>
+    </g>
+    <line x1="298" y1="200" x2="585" y2="200" style="stroke:var(--f-fit)" stroke-width="5" stroke-linecap="round"/>
+    <text x="300" y="220" style="fill:var(--f-fit)" font-size="12" font-weight="600">тень глиссады: где встать</text>
+    <g transform="translate(452 182)" style="stroke:var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+      <circle cx="0" cy="-6" r="3"/><line x1="0" y1="-3" x2="0" y2="8"/><line x1="0" y1="8" x2="-4" y2="17"/><line x1="0" y1="8" x2="4" y2="17"/><line x1="0" y1="1" x2="-5" y2="-3"/>
+    </g>
+  </svg>
+  <figcaption>Вы, самолёт и Луна на одной прямой. Луна движется, поэтому тень ползёт по земле.
+  На карте она нарисована на каждые 2 минуты.</figcaption>
+</figure>
+<p>Расписание рейсов здесь не предсказывается. Самолёты садятся потоком, но только на ту полосу, которая сейчас
+в работе, а это зависит от ветра. Подробнее — в разделе <a href="#runway">«Какая полоса в работе»</a>.</p>
+
+<h2>С чего начать: три способа</h2>
+<div class="paths">
+  <div class="card"><b>1. Найти удачную дату</b>
+    Выберите аэропорт и полосу, затем в панели «Удачные окна» нажмите <span class="btn">Найти</span>.
+    Нажмите на строку: карта переедет туда, а справа появятся время и направление.</div>
+  <div class="card"><b>2. Я знаю, где буду</b>
+    Нажмите на карту в этом месте (или <span class="btn">я здесь</span>). Справа появятся окна на выбранные сутки
+    и «Ближайшие даты отсюда» на 60 дней по всем полосам.</div>
+  <div class="card"><b>3. Разобрать конкретную ночь</b>
+    Задайте дату в поле «ночь с» и двигайте ползунок под картой: тень глиссады поползёт по земле.</div>
+</div>
+
+<h2>Шапка</h2>
+<dl>
+  <dt><span class="btn">Ларнака</span> <span class="btn">Пафос</span></dt><dd>быстрый выбор аэропорта. В поле «аэропорт» подойдёт любой код ICAO в мире.</dd>
+  <dt>полоса</dt><dd>номер полосы и сторона, с которой заходят самолёты. Например, «22 — заход с СВ»: самолёты летят с северо-востока.</dd>
+  <dt>ночь с</dt><dd>сутки от полудня этой даты до полудня следующей: вечер, ночь и утро целиком.</dd>
+  <dt><span class="btn">Луна</span> <span class="btn">Солнце</span></dt><dd>на фоне чего снимать.</dd>
+  <dt><span class="btn">я здесь</span></dt><dd>ваше место по GPS. Работает только по HTTPS.</dd>
+</dl>
+
+<h2>Что на карте</h2>
+<div class="legend">
+  <svg width="40" height="12"><line x1="1" y1="6" x2="39" y2="6" style="stroke:var(--ink-2)" stroke-width="2" stroke-dasharray="5 4"/></svg>
+  <span>Глиссада: по ней снижаются самолёты. Точки на ней — порог полосы и расстояния 1–4 NM (морские мили)
+  от порога. Наведите на точку, чтобы увидеть высоту.</span>
+  <svg width="40" height="12"><line x1="1" y1="6" x2="39" y2="6" style="stroke:var(--ink-2)" stroke-width="2" stroke-dasharray="1 4"/></svg>
+  <span>Горизонтальный участок перед глиссадой, от точки IF до FAF. Здесь самолёт летит на постоянной высоте.</span>
+  <svg width="40" height="12"><line x1="1" y1="6" x2="39" y2="6" style="stroke:var(--f-fit)" stroke-width="2" opacity=".45"/></svg>
+  <span>Тени глиссады на каждые 2 минуты, бледные. Подписи — время раз в 10 минут, ваше местное.</span>
+  <svg width="40" height="14"><rect x="1" y="2" width="38" height="10" style="fill:var(--sel);stroke:var(--sel)" fill-opacity=".25" stroke-width=".8"/><line x1="1" y1="7" x2="39" y2="7" style="stroke:var(--f-fit)" stroke-width="3"/></svg>
+  <span>Тень на минуту, выбранную ползунком. Яркая линия — самолёт проходит через центр диска. Голубая заливка —
+  самолёт хоть как-то попадает на диск: насколько можно отойти в сторону.</span>
+  <svg width="40" height="12"><line x1="1" y1="6" x2="39" y2="6" style="stroke:var(--f-fit)" stroke-width="2" stroke-dasharray="2 4"/></svg>
+  <span>Тень над морем, пунктиром. Галочка «скрыть море» уберёт эти участки. Озёра считаются сушей.</span>
+</div>
+
+<h3>Цвет — размер самолёта на диске</h3>
+<p>Считается для A320 (размах крыла 36 м). Чем дальше вы от самолёта, тем он мельче.</p>
+<div class="legend">
+  <svg width="40" height="12"><line x1="1" y1="6" x2="39" y2="6" style="stroke:var(--f-small)" stroke-width="3" stroke-linecap="round"/></svg><span>меньше трети диаметра диска: самолёт маленький, нужен длинный объектив</span>
+  <svg width="40" height="12"><line x1="1" y1="6" x2="39" y2="6" style="stroke:var(--f-fit)" stroke-width="3" stroke-linecap="round"/></svg><span>целиком в диске: классический кадр</span>
+  <svg width="40" height="12"><line x1="1" y1="6" x2="39" y2="6" style="stroke:var(--f-big)" stroke-width="3" stroke-linecap="round"/></svg><span>до 3 дисков: самолёт крупнее Луны</span>
+  <svg width="40" height="12"><line x1="1" y1="6" x2="39" y2="6" style="stroke:var(--f-huge)" stroke-width="3" stroke-linecap="round"/></svg><span>больше 3 дисков: Луна где-то за крылом</span>
+</div>
+<p class="muted">У Луны и Солнца угловой размер почти одинаковый, около полградуса. Поэтому A320 целиком помещается
+в диск только с расстояния примерно 4 км и больше. На глиссаде такое бывает, когда светило низко, ниже 10–15°.</p>
+
+<h3>Лучи светил</h3>
+<div class="legend">
+  <svg width="40" height="14"><line x1="1" y1="7" x2="31" y2="7" style="stroke:var(--moon)" stroke-width="3"/><circle cx="33" cy="7" r="5" style="fill:var(--moon)"/></svg>
+  <span>Где Луна (☾) и Солнце (☀) в выбранную минуту, если они над горизонтом. Луч выходит из выбранной точки
+  (иначе — из порога полосы) по азимуту светила. Чем выше светило, тем короче луч. В подписи — высота и азимут.</span>
+</div>
+
+<h2>Выбранная точка: схема прицела</h2>
+<p>Нажмите на карту. Сервер посчитает, когда из этой точки глиссада пройдёт по диску, с учётом рельефа.
+Он проверит, не закрыт ли самолёт холмом и не спрячется ли Луна за горой. Камера считается на высоте 1,7 м
+над землёй.</p>
+<div class="legend">
+  <svg width="40" height="12"><circle cx="6" cy="6" r="4" fill="none" style="stroke:var(--sel)" stroke-width="2"/><line x1="10" y1="6" x2="39" y2="6" style="stroke:var(--sel)" stroke-width="2.5"/></svg>
+  <span>От вас к месту под самолётом. В значке ✈ — время, высота самолёта и расстояние до него.</span>
+  <svg width="40" height="12"><line x1="1" y1="6" x2="31" y2="6" style="stroke:var(--sel)" stroke-width="2" stroke-dasharray="1 4"/><circle cx="34" cy="6" r="5" style="fill:var(--moon)"/></svg>
+  <span>Дальше по той же прямой — туда смотреть на диск. В подписи — высота и азимут.</span>
+</div>
+<p>Схема прицела нарисована на момент окна: в подписях ✈ и ☾ стоит его время. Если увести ползунок за пределы окна,
+схема побледнеет, а лучи Луны и Солнца покажут минуту на ползунке. Луна за это время сдвигается
+на градусы. Нажмите на окно в карточке, чтобы вернуться к нему.</p>
+<p>Справа — карточка точки. Вверху: рельеф под вами и сколько глиссады отсюда видно (остальное закрыто рельефом
+или ниже горизонта). Под этим — окна на выбранные сутки:</p>
+<dl>
+  <dt>12:34:05 – 12:36:40</dt><dd>окно: пока глиссада идёт по диску. За это время самолёт должен оказаться
+    в нужной точке захода.</dd>
+  <dt>лучше всего в …</dt><dd>момент, когда глиссада ближе всего к центру диска. Если она проходит не через центр,
+    рядом написано, на сколько мимо.</dd>
+  <dt>самолёт</dt><dd>расстояние от вас до самолёта, его высота над морем и сколько ему осталось до порога полосы.</dd>
+  <dt>на диске</dt><dd>размер ATR 72, A320/B737 и B777 относительно диаметра диска.</dd>
+  <dt>пролёт</dt><dd>сколько самолёт идёт через центр диска, обычно доли секунды или секунды.
+    Снимайте серией или видео.</dd>
+  <dt>Луна, небо</dt><dd>высота, азимут, освещённость Луны и насколько темно (ночь, сумерки, день).</dd>
+</dl>
+<p>Нажмите на окно: ползунок встанет на это время, а схема прицела — на этот момент. Ниже — «Ближайшие даты
+отсюда»: окна из этой точки на 60 дней по всем полосам аэропорта. Нажмите на дату, и карта переключится на неё.</p>
+
+<h2>Удачные окна</h2>
+<p>Поиск по одной полосе на 30–90 дней вперёд. Он находит моменты, когда тень глиссады ложится на сушу
+и самолёт нужного размера. Первый поиск идёт 10–20 секунд, повторный и смена фильтров — мгновенно.</p>
+<dl>
+  <dt>самолёт</dt><dd>«целиком в диске» — A320 занимает от четверти до всего диаметра; «до 2 дисков»;
+    «любой» — от 10 % диаметра до пяти дисков.</dd>
+  <dt>ночь, сумерки, день</dt><dd>по высоте Солнца: ночь — ниже −12°, сумерки — от −12° до 0°, день — выше.</dd>
+  <dt>освещена ≥</dt><dd>доля освещённого диска Луны. Узкий серп снимать сложнее.</dd>
+  <dt>выше</dt><dd>минимальная высота светила. У самого горизонта сильнее дымка и мешают дома.</dd>
+</dl>
+<p>В строке результата: дата, время окна, небо, высота и сторона Луны, размер A320 и где это место
+относительно полосы.</p>
+
+<h2>Под картой</h2>
+<dl>
+  <dt>ползунок</dt><dd>минута суток. Над ним — дата, время, высота и азимут светила.</dd>
+  <dt>только в темноте</dt><dd>убрать минуты, когда Солнце выше −6°.</dd>
+  <dt>скрыть море</dt><dd>не рисовать тень над морем.</dd>
+  <dt>все минуты бледно</dt><dd>показывать бледные тени всех минут суток.</dd>
+</dl>
+<p>Адрес страницы хранит аэропорт, полосу, дату, светило и выбранную точку. Ссылкой можно поделиться.</p>
+
+<h2 id="runway">Какая полоса в работе</h2>
+<p>Самолёты садятся против ветра, поэтому в один день работает одно направление полосы. В ветреный день
+противоположное может вообще не работать.</p>
+<ul>
+  <li>Накануне посмотрите прогноз ветра и какой полосой садятся сейчас (Flightradar24 и подобные сервисы,
+    METAR и ATIS аэропорта).</li>
+  <li>Держите запасной вариант: «Ближайшие даты отсюда» показывают окна по всем полосам.</li>
+  <li>Посмотрите, как часто садятся самолёты в это время. Ночью рейсов меньше, и самолёт может просто не попасть
+    в окно длиной в минуту.</li>
+</ul>
+
+<h2>На месте</h2>
+<ol>
+  <li>Приезжайте заранее. Нажмите <span class="btn">я здесь</span>, проверьте, что точка совпадает, и при
+    необходимости сдвиньтесь. Сдвиг на десятки метров поперёк линии сдвигает момент пролёта.</li>
+  <li>Направьте объектив по азимуту и высоте из схемы прицела, на сам диск. Самолёт придёт со стороны захода.</li>
+  <li>Снимайте серией или видео: пролёт через диск длится секунды.</li>
+</ol>
+
+<h2>Точность и ограничения</h2>
+<ul>
+  <li>Модель захода — по схеме, если она задана для полосы. Иначе — типовая глиссада 3°. Реальный самолёт может
+    идти на десятки метров выше или ниже и чуть в стороне.</li>
+  <li>Рельеф — модель Copernicus DEM с шагом 30 м. Лес и крупные постройки в ней частично есть, отдельные дома,
+    столбы и деревья у вас перед носом — нет.</li>
+  <li>Море — где рельеф ровно 0 м. Озёра так не отличить.</li>
+  <li>Время на странице — часовой пояс вашего устройства. Если планируете поездку в другой пояс, учтите разницу.</li>
+</ul>
+<div class="card warn">
+  <b>Безопасность.</b> Не заходите на территорию аэропорта, к военным объектам и на запрещённые участки:
+  линия на карте ничего не говорит о том, можно ли там стоять. Солнце смотрите и снимайте только через
+  сертифицированный солнечный фильтр. Без него можно повредить глаза и камеру.
+</div>
+<p class="muted"><a href="./">← к карте</a></p>
+</div>
+</body>
+</html>
