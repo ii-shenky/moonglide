@@ -18,7 +18,8 @@ airport, ident, date = (sys.argv[1:4] if len(sys.argv) > 3 else ("LCLK", "22", "
 C = Path(__file__).resolve().parent.parent / "cache"
 S, D = sky.Sky(C), dem.Dem(C)
 rw = runways.Runways(C).get(airport, ident)
-ap = approaches.load(Path(__file__).resolve().parent.parent / "approaches.local.toml").get((airport, ident), {})
+root = Path(__file__).resolve().parent.parent
+ap = approaches.load(root / "approaches.toml", root / "approaches.local.toml").get((airport, ident), {})
 g = runways.Glide(rw, **{k: v for k, v in ap.items() if k in ("angle", "tch_m", "faf_km", "length_km")})
 print("заход:", ap.get("note") or "типовой 3°")
 d, pts, _ = g.points()

@@ -1,0 +1,36 @@
+# Параметры заходов по полосам (moonglide/approaches.py): угол глиссады, высота пролёта порога (TCH),
+# FAF — начало снижения по глиссаде, IF — начало прямого участка (от IF до FAF — горизонтально на высоте FAF).
+# Расстояния — в морских милях от порога. Полоса без записи — типовая глиссада 3°, 15 м, 18 км.
+# Свои правки — в approaches.local.toml (в .gitignore): его записи заменяют записи этого файла.
+#
+# Кипр: параметры из схем захода AIP Cyprus (DCA), отдельные числа, не копия документа.
+# IF по DME от VOR пересчитаны до порога по координатам маяков (OurAirports): LCA VOR в 1,2 км от порога 22,
+# PHA VOR — в 0,7 км от порога 29.
+
+[LCLK."22"]
+angle = 2.75
+tch_ft = 57
+faf_nm = 4.9      # D4.9 ILC (ILS DME — ноль у смещённого порога), 1500 ft
+if_nm = 8.37      # IF D9.0 LCA (CI22), 1500 ft
+note = "ILS Y RWY 22: GS 2.75°, FAF D4.9 ILC 1500 ft"
+
+[LCLK."04"]
+angle = 3.0
+tch_ft = 50
+faf_nm = 6.1      # LK403, 2000 ft
+if_nm = 11.2      # LK404, 2000 ft
+note = "RNP RWY 04: 3.00°, FAF LK403 2000 ft"
+
+[LCPH."29"]
+angle = 3.0
+tch_ft = 52
+faf_nm = 6.3      # D6.3 IPA (ILS DME — ноль у порога 29), 2100 ft
+if_nm = 9.37      # IF D9.0 PHA (CI29), 2100 ft
+note = "ILS Y RWY 29: GS 3.00°, FAF D6.3 IPA 2100 ft"
+
+[LCPH."11"]
+angle = 3.0
+tch_ft = 51
+faf_nm = 5.1      # PH701, 1700 ft
+if_nm = 10.2      # PH702, 1700 ft
+note = "RNP RWY 11: 3.00°, FAF PH701 1700 ft"

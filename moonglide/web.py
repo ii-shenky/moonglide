@@ -220,7 +220,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         return self._req_for(rw, _date(q, days), self._body(q), q)
 
     def _req_for(self, rw, date: str, body: str, q) -> plan.Request:
-        """Параметры захода: из запроса (angle, length) > approaches.local.toml > 3°, 15 м, 18 км."""
+        """Параметры захода: из запроса (angle, length) > approaches(.local).toml > 3°, 15 м, 18 км."""
         ap = self.ctx.approaches.get((rw.airport.upper(), rw.ident.upper()), {})
         angle = _float(q, "angle", 1.0, 6.0, ap.get("angle", 3.0))
         length = _float(q, "length", 2.0, 40.0, ap.get("length_km", 18.0))

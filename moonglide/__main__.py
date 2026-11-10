@@ -22,14 +22,17 @@ def main():
     default_cache = os.environ.get("STATE_DIRECTORY") or str(Path.home() / ".cache" / "moonglide")
     ap.add_argument("--cache", type=Path, default=Path(default_cache),
                     help="эфемериды, полосы, рельеф (по умолчанию $STATE_DIRECTORY или ~/.cache/moonglide)")
-    ap.add_argument("--approaches", type=Path, default=Path(__file__).resolve().parent.parent / "approaches.local.toml",
-                    help="параметры заходов (по умолчанию approaches.local.toml рядом с кодом, если есть)")
+    root = Path(__file__).resolve().parent.parent
+    ap.add_argument("--approaches", type=Path, action="append",
+                    help="параметры заходов, можно несколько — последний главнее "
+                         "(по умолчанию approaches.toml и approaches.local.toml рядом с кодом, если есть)")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    aps = approaches.load(args.approaches)
+    files = args.approaches or [root / "approaches.toml", root / "approaches.local.toml"]
+    aps = approaches.load(*files)
     if aps:
-        logging.info("заходы из %s: %s", args.approaches, ", ".join(f"{a} {r}" for a, r in aps))
+        logging.info("заходы: %s", ", ".join(f"{a} {r} ({v['file']})" for (a, r), v in aps.items()))
     ctx = SimpleNamespace(sky=Sky(args.cache), dem=Dem(args.cache), runways=Runways(args.cache),
                           airports=Airports(args.cache), approaches=aps)
     serve(ctx, args.bind, args.port)

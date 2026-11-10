@@ -1,8 +1,7 @@
 """Параметры заходов по полосам: угол глиссады, высота над порогом, FAF и IF.
 
-Без них — 3°, 15 м, сплошная глиссада на 18 км. Источник цифр — схемы захода (AIP страны); AIP многих стран,
-в том числе Кипра, распространять нельзя, поэтому свои цифры — в локальном approaches.local.toml (в .gitignore),
-формат — approaches.example.toml:
+Без них — 3°, 15 м, сплошная глиссада на 18 км. Источник цифр — схемы захода (AIP страны). Общие — в
+approaches.toml (в репозитории), свои правки — в approaches.local.toml (в .gitignore), его записи главнее:
 
     [XXXX."09"]
     angle = 3.0        # угол глиссады, °
@@ -17,7 +16,15 @@ from pathlib import Path
 NM_KM, FT_M = 1.852, 0.3048
 
 
-def load(path: Path | None) -> dict[tuple[str, str], dict]:
+def load(*paths: Path | None) -> dict[tuple[str, str], dict]:
+    """Записи из файлов по порядку; запись следующего файла заменяет запись предыдущего для той же полосы."""
+    out = {}
+    for path in paths:
+        out.update(_load(path))
+    return out
+
+
+def _load(path: Path | None) -> dict[tuple[str, str], dict]:
     if not path or not path.exists():
         return {}
     with path.open("rb") as f:
